@@ -1,6 +1,7 @@
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_orm/angel3_orm.dart';
 import 'package:angel3_static/angel3_static.dart';
+import 'package:angel3_websocket/server.dart';
 import 'package:file/file.dart';
 import 'controllers/controllers.dart' as controllers;
 import '../models/greeting.dart';
@@ -10,13 +11,13 @@ import '../models/greeting.dart';
 /// See the wiki for information about routing, requests, and responses:
 /// * https://angel3-docs.dukefirehawk.com/guides/basic-routing
 /// * https://angel3-docs.dukefirehawk.com/guides/requests-and-responses
-AngelConfigurer configureServer(FileSystem fileSystem) {
+AngelConfigurer configureServer(FileSystem fileSystem, AngelWebSocket ws) {
   return (Angel app) async {
     // Typically, you want to mount controllers first, after any global middleware.
     await app.configure(controllers.configureServer);
 
     // Render `views/hello.jl` when a user visits the application root.
-    app.get('/', (req, res) => res.render('hello'));
+    // app.get('/', (req, res) => res.render('hello'));
 
     app.get('/greetings', (req, res) {
       var executor = req.container!.make<QueryExecutor>();
@@ -37,6 +38,14 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
         return optional.value;
       }
     });
+
+    // app.all('/ws', ws.handleRequest);
+
+    // ws.onConnection.listen((socket) {
+    //   socket.onData.listen((x) {
+    //     socket.send('pong', x);
+    //   });
+    // });
 
     app.get('/greetings/:message', (req, res) {
       var message = req.params['message'] as String;
@@ -64,7 +73,7 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
     }
 
     // Throw a 404 if no route matched the request.
-    app.fallback((req, res) => throw AngelHttpException.notFound());
+    // app.fallback((req, res) => throw AngelHttpException.notFound());
 
     // Set our application up to handle different errors.
     //
