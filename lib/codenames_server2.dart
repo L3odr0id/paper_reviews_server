@@ -20,6 +20,6 @@ Future configureServer(Angel app) async {
   var ws = AngelWebSocket(app, sendErrors: !app.environment.isProduction);
   await app.configure(routes.configureServer(fs, ws));
 
-  app.all('/ws', ws.handleRequest);
+  app.all('/ws/:message', ws.handleRequest);
   await app.configure(MyController(ws).configureServer);
 }
