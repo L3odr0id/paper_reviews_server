@@ -13,7 +13,8 @@ class RoomMigration extends Migration {
       table.serial('id').primaryKey();
       table.timeStamp('created_at');
       table.timeStamp('updated_at');
-      table.integer('state');
+      table.integer('state').defaultsTo(0);
+      table.varChar('short_code', length: 255);
     });
   }
 
@@ -123,8 +124,8 @@ class RoomQuery extends Query<Room, RoomQueryWhere> {
         'room_id',
         additionalFields: const ['id', 'created_at', 'updated_at', 'title'],
         trampoline: trampoline);
-    leftJoin(_teams = TeamQuery(trampoline: trampoline, parent: this), 'id',
-        'room_id',
+    leftJoin(
+        _teams = TeamQuery(trampoline: trampoline, parent: this), 'id', 'id',
         additionalFields: const [
           'id',
           'created_at',
@@ -170,7 +171,7 @@ class RoomQuery extends Query<Room, RoomQueryWhere> {
 
   @override
   List<String> get fields {
-    const _fields = ['id', 'created_at', 'updated_at', 'state'];
+    const _fields = ['id', 'created_at', 'updated_at', 'state', 'short_code'];
     return _selectedFields.isEmpty
         ? _fields
         : _fields.where((field) => _selectedFields.contains(field)).toList();
@@ -203,27 +204,28 @@ class RoomQuery extends Query<Room, RoomQueryWhere> {
             ? row[3] == null
                 ? null
                 : GameState?.values[(row[3] as int)]
-            : null);
-    if (row.length > 4) {
-      var modelOpt = CardQuery().parseRow(row.skip(4).take(4).toList());
+            : null,
+        shortCode: fields.contains('short_code') ? (row[4] as String?) : null);
+    if (row.length > 5) {
+      var modelOpt = CardQuery().parseRow(row.skip(5).take(4).toList());
       modelOpt.ifPresent((m) {
         model = model.copyWith(cards: [m]);
       });
     }
-    if (row.length > 8) {
-      var modelOpt = TeamQuery().parseRow(row.skip(8).take(5).toList());
+    if (row.length > 9) {
+      var modelOpt = TeamQuery().parseRow(row.skip(9).take(5).toList());
       modelOpt.ifPresent((m) {
         model = model.copyWith(teams: [m]);
       });
     }
-    if (row.length > 13) {
-      var modelOpt = ActionQuery().parseRow(row.skip(13).take(3).toList());
+    if (row.length > 14) {
+      var modelOpt = ActionQuery().parseRow(row.skip(14).take(3).toList());
       modelOpt.ifPresent((m) {
         model = model.copyWith(history: [m]);
       });
     }
-    if (row.length > 16) {
-      var modelOpt = RuleQuery().parseRow(row.skip(16).take(4).toList());
+    if (row.length > 17) {
+      var modelOpt = RuleQuery().parseRow(row.skip(17).take(4).toList());
       modelOpt.ifPresent((m) {
         model = model.copyWith(rules: [m]);
       });
@@ -322,7 +324,8 @@ class RoomQueryWhere extends QueryWhere {
         createdAt = DateTimeSqlExpressionBuilder(query, 'created_at'),
         updatedAt = DateTimeSqlExpressionBuilder(query, 'updated_at'),
         state = EnumSqlExpressionBuilder<GameState?>(
-            query, 'state', (v) => v?.index as int);
+            query, 'state', (v) => v?.index as int),
+        shortCode = StringSqlExpressionBuilder(query, 'short_code');
 
   final NumericSqlExpressionBuilder<int> id;
 
@@ -332,9 +335,11 @@ class RoomQueryWhere extends QueryWhere {
 
   final EnumSqlExpressionBuilder<GameState?> state;
 
+  final StringSqlExpressionBuilder shortCode;
+
   @override
   List<SqlExpressionBuilder> get expressionBuilders {
-    return [id, createdAt, updatedAt, state];
+    return [id, createdAt, updatedAt, state, shortCode];
   }
 }
 
@@ -364,10 +369,16 @@ class RoomQueryValues extends MapQueryValues {
   }
 
   set state(GameState? value) => values['state'] = value?.index;
+  String? get shortCode {
+    return (values['short_code'] as String?);
+  }
+
+  set shortCode(String? value) => values['short_code'] = value;
   void copyFrom(Room model) {
     createdAt = model.createdAt;
     updatedAt = model.updatedAt;
     state = model.state;
+    shortCode = model.shortCode;
   }
 }
 
@@ -1191,7 +1202,8 @@ class Room extends _Room {
       List<_Card> cards = const [],
       List<_Team> teams = const [],
       List<_Action> history = const [],
-      this.state,
+      this.state = GameState.starting,
+      required this.shortCode,
       List<_Rule> rules = const []})
       : cards = List.unmodifiable(cards),
         teams = List.unmodifiable(teams),
@@ -1223,6 +1235,9 @@ class Room extends _Room {
   GameState? state;
 
   @override
+  String? shortCode;
+
+  @override
   List<_Rule> rules;
 
   Room copyWith(
@@ -1233,6 +1248,7 @@ class Room extends _Room {
       List<_Team>? teams,
       List<_Action>? history,
       GameState? state,
+      String? shortCode,
       List<_Rule>? rules}) {
     return Room(
         id: id ?? this.id,
@@ -1242,6 +1258,7 @@ class Room extends _Room {
         teams: teams ?? this.teams,
         history: history ?? this.history,
         state: state ?? this.state,
+        shortCode: shortCode ?? this.shortCode,
         rules: rules ?? this.rules);
   }
 
@@ -1258,19 +1275,29 @@ class Room extends _Room {
         ListEquality<_Action>(DefaultEquality<_Action>())
             .equals(other.history, history) &&
         other.state == state &&
+        other.shortCode == shortCode &&
         ListEquality<_Rule>(DefaultEquality<_Rule>())
             .equals(other.rules, rules);
   }
 
   @override
   int get hashCode {
-    return hashObjects(
-        [id, createdAt, updatedAt, cards, teams, history, state, rules]);
+    return hashObjects([
+      id,
+      createdAt,
+      updatedAt,
+      cards,
+      teams,
+      history,
+      state,
+      shortCode,
+      rules
+    ]);
   }
 
   @override
   String toString() {
-    return 'Room(id=$id, createdAt=$createdAt, updatedAt=$updatedAt, cards=$cards, teams=$teams, history=$history, state=$state, rules=$rules)';
+    return 'Room(id=$id, createdAt=$createdAt, updatedAt=$updatedAt, cards=$cards, teams=$teams, history=$history, state=$state, shortCode=$shortCode, rules=$rules)';
   }
 
   Map<String, dynamic> toJson() {
@@ -1636,6 +1663,14 @@ class RoomSerializer extends Codec<Room, Map> {
   @override
   RoomDecoder get decoder => const RoomDecoder();
   static Room fromMap(Map map) {
+    if (map['state'] == null) {
+      throw FormatException("Missing required field 'state' on Room.");
+    }
+
+    if (map['short_code'] == null) {
+      throw FormatException("Missing required field 'short_code' on Room.");
+    }
+
     return Room(
         id: map['id'] as String?,
         createdAt: map['created_at'] != null
@@ -1664,7 +1699,8 @@ class RoomSerializer extends Codec<Room, Map> {
             ? (map['state'] as GameState?)
             : (map['state'] is int
                 ? GameState?.values[map['state'] as int]
-                : null),
+                : GameState.starting),
+        shortCode: map['short_code'] as String?,
         rules: map['rules'] is Iterable
             ? List.unmodifiable(((map['rules'] as Iterable).whereType<Map>()).map(RuleSerializer.fromMap))
             : []);
@@ -1683,6 +1719,7 @@ class RoomSerializer extends Codec<Room, Map> {
       'history': model.history.map((m) => ActionSerializer.toMap(m)).toList(),
       'state':
           model.state != null ? GameState.values.indexOf(model.state!) : null,
+      'short_code': model.shortCode,
       'rules': model.rules.map((m) => RuleSerializer.toMap(m)).toList()
     };
   }
@@ -1697,6 +1734,7 @@ abstract class RoomFields {
     teams,
     history,
     state,
+    shortCode,
     rules
   ];
 
@@ -1713,6 +1751,8 @@ abstract class RoomFields {
   static const String history = 'history';
 
   static const String state = 'state';
+
+  static const String shortCode = 'short_code';
 
   static const String rules = 'rules';
 }

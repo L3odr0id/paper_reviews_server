@@ -11,13 +11,17 @@ abstract class _Room extends Model {
   @hasMany
   List<_Card> get cards;
 
-  @hasMany
+  @HasMany(localKey: 'id', foreignKey: 'id')
   List<_Team> get teams;
 
   @hasMany
   List<_Action> get history;
 
+  @SerializableField(isNullable: false, defaultValue: GameState.starting)
   GameState? get state;
+
+  @SerializableField(isNullable: false)
+  String? get shortCode;
 
   @hasMany
   List<_Rule> get rules;
