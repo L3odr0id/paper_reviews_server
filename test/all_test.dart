@@ -1,6 +1,6 @@
-import 'package:codenames_server2/codenames_server2.dart';
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_test/angel3_test.dart';
+import 'package:cursach_reports_backend/cursach_reports_backend.dart';
 import 'package:test/test.dart';
 
 // Angel also includes facilities to make testing easier.

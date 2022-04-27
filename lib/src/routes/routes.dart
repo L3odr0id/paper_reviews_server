@@ -2,8 +2,6 @@ import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_orm/angel3_orm.dart';
 import 'package:angel3_static/angel3_static.dart';
 import 'package:angel3_websocket/server.dart';
-import 'package:codenames_server2/common/random_string.dart';
-import 'package:codenames_server2/models.dart';
 import 'package:file/file.dart';
 import 'controllers/controllers.dart' as controllers;
 import '../models/greeting.dart';
@@ -13,7 +11,7 @@ import '../models/greeting.dart';
 /// See the wiki for information about routing, requests, and responses:
 /// * https://angel3-docs.dukefirehawk.com/guides/basic-routing
 /// * https://angel3-docs.dukefirehawk.com/guides/requests-and-responses
-AngelConfigurer configureServer(FileSystem fileSystem, AngelWebSocket ws) {
+AngelConfigurer configureServer(FileSystem fileSystem) {
   return (Angel app) async {
     // Typically, you want to mount controllers first, after any global middleware.
     await app.configure(controllers.configureServer);
@@ -41,17 +39,17 @@ AngelConfigurer configureServer(FileSystem fileSystem, AngelWebSocket ws) {
     //   }
     // });
 
-    app.post('/room/', (req, res) async {
-      await req.parseBody();
+    // app.post('/room/', (req, res) async {
+    //   await req.parseBody();
 
-      var executor = req.container!.make<QueryExecutor>();
-      // var message = req.bodyAsMap['message'].toString();
-      var query = Room2Query()
-        ..values.state = GameState.starting
-        ..values.shortCode = RandomString().r4;
-      var optional = await query.insert(executor);
-      return optional.value;
-    });
+    //   var executor = req.container!.make<QueryExecutor>();
+    //   // var message = req.bodyAsMap['message'].toString();
+    //   var query = Room2Query()
+    //     ..values.state = GameState.starting
+    //     ..values.shortCode = RandomString().r4;
+    //   var optional = await query.insert(executor);
+    //   return optional.value;
+    // });
 
     // app.all('/ws', ws.handleRequest);
 
