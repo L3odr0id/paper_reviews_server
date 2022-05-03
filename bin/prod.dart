@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:angel3_container/mirrors.dart';
 import 'package:angel3_production/angel3_production.dart';
 import 'package:cursach_reports_backend/cursach_reports_backend.dart';
@@ -27,4 +29,4 @@ import 'package:cursach_reports_backend/cursach_reports_backend.dart';
 // https://gitter.im/angel_dart/discussion
 void main(List<String> args) =>
     Runner('codenames_server2', configureServer, reflector: MirrorsReflector())
-        .run(args);
+        .run(['-p', Platform.environment['PORT'] ?? '3000']);
