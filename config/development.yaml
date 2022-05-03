@@ -1,2 +1,11 @@
 # Development-only server configuration.
 debug: true
+postgres:
+  host: localhost
+  port: 5432
+  database_name: habrdb
+  username: habrpguser
+  password: pgpwd4habr
+  useSSL: false
+  time_zone: UTC
+jwt_secret: "6ZXjiUn06SzvsucByYDeE4Oj0YYlXjFx"

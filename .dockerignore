@@ -7,4 +7,8 @@ test/
 build/
 .analysis-options
 .packages
-*.g.dart
+# *.g.dart
+.git
+.git/
+db_docker/
+more_info/

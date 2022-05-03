@@ -30,6 +30,6 @@ Future<PostgreSQLConnection> connectToPostgres(Map configuration) async {
       password: postgresConfig['password'] as String?,
       timeZone: postgresConfig['time_zone'] as String? ?? 'UTC',
       timeoutInSeconds: postgresConfig['timeout_in_seconds'] as int? ?? 30,
-      useSSL: postgresConfig['use_ssl'] as bool? ?? false);
+      useSSL: postgresConfig['useSSL'] as bool? ?? false);
   return connection;
 }

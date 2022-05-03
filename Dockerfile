@@ -1,6 +1,11 @@
 FROM google/dart:latest
 
-COPY ./ ./
+COPY ./bin ./bin
+COPY ./config ./config
+COPY ./lib ./lib
+COPY ./views ./views
+COPY ./web ./web
+COPY ./pubspec.yaml ./pubspec.yaml
 
 # Install dependencies, pre-build
 RUN pub get

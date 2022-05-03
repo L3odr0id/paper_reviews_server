@@ -2,7 +2,9 @@ import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_orm/angel3_orm.dart';
 import 'package:angel3_static/angel3_static.dart';
 import 'package:angel3_websocket/server.dart';
+import 'package:cursach_reports_backend/models.dart';
 import 'package:file/file.dart';
+import 'package:logging/logging.dart';
 import 'controllers/controllers.dart' as controllers;
 import '../models/greeting.dart';
 
@@ -66,6 +68,43 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
     //   return query.get(executor);
     // });
 
+    app.post('/report/', (req, res) async {
+      print('REAL report post');
+      await req.parseBody();
+
+      throwMissingKey(req, 'subject');
+      throwMissingKey(req, 'title');
+      throwMissingKey(req, 'message');
+      throwMissingKey(req, 'author');
+      throwMissingKey(req, 'date');
+
+      var executor = req.container!.make<QueryExecutor>();
+      var subject = req.bodyAsMap['subject'].toString();
+      var title = req.bodyAsMap['title'].toString();
+      var message = req.bodyAsMap['message'].toString();
+      var author = req.bodyAsMap['author'].toString();
+      var date = req.bodyAsMap['date'];
+      if (date is! int) {
+        throw AngelHttpException.badRequest(message: 'date has to be int');
+      }
+
+      var query = ReportQuery()
+        ..values.message = message
+        ..values.author = author
+        ..values.subject = subject
+        ..values.title = title
+        ..values.date = DateTime.fromMillisecondsSinceEpoch(date);
+      var optional = await query.insert(executor);
+      return optional.value;
+    });
+
+    app.get('/reports', (req, res) {
+      print('REAL report get');
+      var executor = req.container!.make<QueryExecutor>();
+      var query = ReportQuery();
+      return query.get(executor);
+    });
+
     // Mount static server at web in development.
     // The `CachingVirtualDirectory` variant of `VirtualDirectory` also sends `Cache-Control` headers.
     //
@@ -106,4 +145,10 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
       }
     };
   };
+}
+
+void throwMissingKey(RequestContext req, String key) {
+  if (!req.bodyAsMap.containsKey(key)) {
+    throw AngelHttpException.badRequest(message: 'Missing "$key".');
+  }
 }

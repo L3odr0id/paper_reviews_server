@@ -14,6 +14,7 @@ class ReportMigration extends Migration {
       table.timeStamp('created_at');
       table.timeStamp('updated_at');
       table.varChar('subject', length: 255);
+      table.varChar('title', length: 255);
       table.varChar('message', length: 255);
       table.varChar('author', length: 255);
       table.timeStamp('date');
@@ -62,6 +63,7 @@ class ReportQuery extends Query<Report, ReportQueryWhere> {
       'created_at',
       'updated_at',
       'subject',
+      'title',
       'message',
       'author',
       'date'
@@ -95,9 +97,10 @@ class ReportQuery extends Query<Report, ReportQueryWhere> {
         createdAt: fields.contains('created_at') ? (row[1] as DateTime?) : null,
         updatedAt: fields.contains('updated_at') ? (row[2] as DateTime?) : null,
         subject: fields.contains('subject') ? (row[3] as String?) : null,
-        message: fields.contains('message') ? (row[4] as String?) : null,
-        author: fields.contains('author') ? (row[5] as String?) : null,
-        date: fields.contains('date') ? (row[6] as DateTime?) : null);
+        title: fields.contains('title') ? (row[4] as String?) : null,
+        message: fields.contains('message') ? (row[5] as String?) : null,
+        author: fields.contains('author') ? (row[6] as String?) : null,
+        date: fields.contains('date') ? (row[7] as DateTime?) : null);
     return Optional.of(model);
   }
 
@@ -113,6 +116,7 @@ class ReportQueryWhere extends QueryWhere {
         createdAt = DateTimeSqlExpressionBuilder(query, 'created_at'),
         updatedAt = DateTimeSqlExpressionBuilder(query, 'updated_at'),
         subject = StringSqlExpressionBuilder(query, 'subject'),
+        title = StringSqlExpressionBuilder(query, 'title'),
         message = StringSqlExpressionBuilder(query, 'message'),
         author = StringSqlExpressionBuilder(query, 'author'),
         date = DateTimeSqlExpressionBuilder(query, 'date');
@@ -125,6 +129,8 @@ class ReportQueryWhere extends QueryWhere {
 
   final StringSqlExpressionBuilder subject;
 
+  final StringSqlExpressionBuilder title;
+
   final StringSqlExpressionBuilder message;
 
   final StringSqlExpressionBuilder author;
@@ -133,7 +139,7 @@ class ReportQueryWhere extends QueryWhere {
 
   @override
   List<SqlExpressionBuilder> get expressionBuilders {
-    return [id, createdAt, updatedAt, subject, message, author, date];
+    return [id, createdAt, updatedAt, subject, title, message, author, date];
   }
 }
 
@@ -163,6 +169,11 @@ class ReportQueryValues extends MapQueryValues {
   }
 
   set subject(String? value) => values['subject'] = value;
+  String? get title {
+    return (values['title'] as String?);
+  }
+
+  set title(String? value) => values['title'] = value;
   String? get message {
     return (values['message'] as String?);
   }
@@ -182,6 +193,7 @@ class ReportQueryValues extends MapQueryValues {
     createdAt = model.createdAt;
     updatedAt = model.updatedAt;
     subject = model.subject;
+    title = model.title;
     message = model.message;
     author = model.author;
     date = model.date;
@@ -199,6 +211,7 @@ class Report extends _Report {
       this.createdAt,
       this.updatedAt,
       this.subject,
+      this.title,
       this.message,
       this.author,
       this.date});
@@ -219,6 +232,9 @@ class Report extends _Report {
   String? subject;
 
   @override
+  String? title;
+
+  @override
   String? message;
 
   @override
@@ -232,6 +248,7 @@ class Report extends _Report {
       DateTime? createdAt,
       DateTime? updatedAt,
       String? subject,
+      String? title,
       String? message,
       String? author,
       DateTime? date}) {
@@ -240,6 +257,7 @@ class Report extends _Report {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         subject: subject ?? this.subject,
+        title: title ?? this.title,
         message: message ?? this.message,
         author: author ?? this.author,
         date: date ?? this.date);
@@ -252,6 +270,7 @@ class Report extends _Report {
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt &&
         other.subject == subject &&
+        other.title == title &&
         other.message == message &&
         other.author == author &&
         other.date == date;
@@ -260,12 +279,12 @@ class Report extends _Report {
   @override
   int get hashCode {
     return hashObjects(
-        [id, createdAt, updatedAt, subject, message, author, date]);
+        [id, createdAt, updatedAt, subject, title, message, author, date]);
   }
 
   @override
   String toString() {
-    return 'Report(id=$id, createdAt=$createdAt, updatedAt=$updatedAt, subject=$subject, message=$message, author=$author, date=$date)';
+    return 'Report(id=$id, createdAt=$createdAt, updatedAt=$updatedAt, subject=$subject, title=$title, message=$message, author=$author, date=$date)';
   }
 
   Map<String, dynamic> toJson() {
@@ -314,6 +333,7 @@ class ReportSerializer extends Codec<Report, Map> {
                 : DateTime.parse(map['updated_at'].toString()))
             : null,
         subject: map['subject'] as String?,
+        title: map['title'] as String?,
         message: map['message'] as String?,
         author: map['author'] as String?,
         date: map['date'] != null
@@ -332,6 +352,7 @@ class ReportSerializer extends Codec<Report, Map> {
       'created_at': model.createdAt?.toIso8601String(),
       'updated_at': model.updatedAt?.toIso8601String(),
       'subject': model.subject,
+      'title': model.title,
       'message': model.message,
       'author': model.author,
       'date': model.date?.toIso8601String()
@@ -345,6 +366,7 @@ abstract class ReportFields {
     createdAt,
     updatedAt,
     subject,
+    title,
     message,
     author,
     date
@@ -357,6 +379,8 @@ abstract class ReportFields {
   static const String updatedAt = 'updated_at';
 
   static const String subject = 'subject';
+
+  static const String title = 'title';
 
   static const String message = 'message';
 
