@@ -29,4 +29,6 @@ import 'package:cursach_reports_backend/cursach_reports_backend.dart';
 // https://gitter.im/angel_dart/discussion
 void main(List<String> args) =>
     Runner('codenames_server2', configureServer, reflector: MirrorsReflector())
-        .run(['-p', Platform.environment['PORT'] ?? '3000']);
+        .run(
+      ['-p', Platform.environment['PORT'] ?? '3000', '--address', '0.0.0.0'],
+    );
