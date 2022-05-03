@@ -1,0 +1,11 @@
+# Production-only server configuration
+debug: false
+postgres:
+  host: ec2-176-34-211-0.eu-west-1.compute.amazonaws.com
+  port: 5432
+  database_name: d2sglqvjr8lblh
+  username: tbpfcsvormfezf
+  password: 9a10b229cab64dc3d9e48d46eed938d310681181dd7885fed505bd203c3188f7
+  useSSL: true
+  time_zone: UTC
+jwt_secret: "C1tMzFCOKjr2ToAvw3koo0YX1tVuYxdd"
