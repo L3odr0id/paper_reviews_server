@@ -64,6 +64,18 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
       }
     });
 
+    app.delete('/report/:id', (req, res) async {
+      throwMissingParam(req, 'id');
+
+      var id = int.parse(req.params['id']);
+
+      var executor = req.container!.make<QueryExecutor>();
+      var query = ReportQuery()..where!.id.equals(id);
+
+      final user = await query.delete(executor);
+      return {'success': true};
+    });
+
     app.post('/report/', (req, res) async {
       print('REAL report post');
       await req.parseBody();
