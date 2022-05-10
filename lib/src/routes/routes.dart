@@ -1,12 +1,13 @@
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_orm/angel3_orm.dart';
+import 'package:angel3_serialize/angel3_serialize.dart';
 import 'package:angel3_static/angel3_static.dart';
-import 'package:angel3_websocket/server.dart';
+import 'package:cursach_reports_backend/common/string_hash.dart';
 import 'package:cursach_reports_backend/models.dart';
+import 'package:cursach_reports_backend/src/models/user.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'controllers/controllers.dart' as controllers;
-import '../models/greeting.dart';
 
 /// Put your app routes here!
 ///
@@ -21,52 +22,40 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
     // Render `views/hello.jl` when a user visits the application root.
     // app.get('/', (req, res) => res.render('hello'));
 
-    // app.get('/greetings', (req, res) {
-    //   var executor = req.container!.make<QueryExecutor>();
-    //   var query = GreetingQuery();
-    //   return query.get(executor);
-    // });
+    app.get('/user/:login', (req, res) async {
+      throwMissingParam(req, 'login');
+      throwMissingQuery(req, 'password');
 
-    // app.post('/greetings', (req, res) async {
-    //   await req.parseBody();
+      var login = req.params['login'] as String;
+      var password = req.queryParameters['password'] as String;
+      print(login + ' ' + password);
+      var executor = req.container!.make<QueryExecutor>();
+      var query = UserQuery()
+        ..where!.login.equals(login)
+        ..where!.password.equals(password.sha256Hash);
 
-    //   if (!req.bodyAsMap.containsKey('message')) {
-    //     throw AngelHttpException.badRequest(message: 'Missing "message".');
-    //   } else {
-    //     var executor = req.container!.make<QueryExecutor>();
-    //     var message = req.bodyAsMap['message'].toString();
-    //     var query = GreetingQuery()..values.message = message;
-    //     var optional = await query.insert(executor);
-    //     return optional.value;
-    //   }
-    // });
+      final user = await query.get(executor);
+      return {'success': user.isNotEmpty};
+    });
 
-    // app.post('/room/', (req, res) async {
-    //   await req.parseBody();
+    app.post('/user/', (req, res) async {
+      await req.parseBody();
 
-    //   var executor = req.container!.make<QueryExecutor>();
-    //   // var message = req.bodyAsMap['message'].toString();
-    //   var query = Room2Query()
-    //     ..values.state = GameState.starting
-    //     ..values.shortCode = RandomString().r4;
-    //   var optional = await query.insert(executor);
-    //   return optional.value;
-    // });
+      throwMissingKey(req, 'login');
+      throwMissingKey(req, 'password');
 
-    // app.all('/ws', ws.handleRequest);
+      var login = req.bodyAsMap['login'] as String;
+      var password = req.bodyAsMap['password'] as String;
 
-    // ws.onConnection.listen((socket) {
-    //   socket.onData.listen((x) {
-    //     socket.send('pong', x);
-    //   });
-    // });
+      print(login + ' ' + password);
+      var executor = req.container!.make<QueryExecutor>();
 
-    // app.get('/greetings/:message', (req, res) {
-    //   var message = req.params['message'] as String;
-    //   var executor = req.container!.make<QueryExecutor>();
-    //   var query = GreetingQuery()..where!.message.equals(message);
-    //   return query.get(executor);
-    // });
+      var query = UserQuery()
+        ..values.login = login
+        ..values.password = password.sha256Hash;
+      var optional = await query.insert(executor);
+      return {"success": optional.isPresent};
+    });
 
     app.post('/report/', (req, res) async {
       print('REAL report post');
@@ -77,25 +66,66 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
       throwMissingKey(req, 'message');
       throwMissingKey(req, 'author');
       throwMissingKey(req, 'date');
+      throwMissingKey(req, 'is_anonymous');
 
       var executor = req.container!.make<QueryExecutor>();
       var subject = req.bodyAsMap['subject'].toString();
       var title = req.bodyAsMap['title'].toString();
       var message = req.bodyAsMap['message'].toString();
       var author = req.bodyAsMap['author'].toString();
+      var isAnonymous = req.bodyAsMap['is_anonymous'] as bool?;
       var date = req.bodyAsMap['date'];
       if (date is! int) {
         throw AngelHttpException.badRequest(message: 'date has to be int');
       }
 
       var query = ReportQuery()
+        // ..values.id = Random().nextInt(0x7fffffff).toString()
         ..values.message = message
         ..values.author = author
         ..values.subject = subject
         ..values.title = title
+        ..values.isAnonymous = isAnonymous
         ..values.date = DateTime.fromMillisecondsSinceEpoch(date);
       var optional = await query.insert(executor);
       return optional.value;
+    });
+
+    app.put('/report/', (req, res) async {
+      print('REAL report put');
+      await req.parseBody();
+
+      throwMissingKey(req, 'subject');
+      throwMissingKey(req, 'title');
+      throwMissingKey(req, 'message');
+      throwMissingKey(req, 'author');
+      throwMissingKey(req, 'date');
+      throwMissingKey(req, 'id');
+      throwMissingKey(req, 'is_anonymous');
+
+      var executor = req.container!.make<QueryExecutor>();
+      var subject = req.bodyAsMap['subject'].toString();
+      var title = req.bodyAsMap['title'].toString();
+      var message = req.bodyAsMap['message'].toString();
+      var author = req.bodyAsMap['author'].toString();
+      var id = req.bodyAsMap['id'].toString();
+      var isAnonymous = req.bodyAsMap['is_anonymous'] as bool?;
+      var date = req.bodyAsMap['date'];
+      if (date is! int) {
+        throw AngelHttpException.badRequest(message: 'date has to be int');
+      }
+
+      var query = ReportQuery()
+        ..values.id = id
+        ..values.message = message
+        ..values.author = author
+        ..values.subject = subject
+        ..values.title = title
+        ..values.isAnonymous = isAnonymous
+        ..values.date = DateTime.fromMillisecondsSinceEpoch(date);
+
+      var optional = await query.update(executor);
+      return optional.first;
     });
 
     app.get('/reports', (req, res) {
@@ -149,6 +179,18 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
 
 void throwMissingKey(RequestContext req, String key) {
   if (!req.bodyAsMap.containsKey(key)) {
-    throw AngelHttpException.badRequest(message: 'Missing "$key".');
+    throw AngelHttpException.badRequest(message: 'Missing body key "$key".');
+  }
+}
+
+void throwMissingParam(RequestContext req, String key) {
+  if (!req.params.containsKey(key)) {
+    throw AngelHttpException.badRequest(message: 'Missing param "$key".');
+  }
+}
+
+void throwMissingQuery(RequestContext req, String key) {
+  if (!req.queryParameters.containsKey(key)) {
+    throw AngelHttpException.badRequest(message: 'Missing query "$key".');
   }
 }

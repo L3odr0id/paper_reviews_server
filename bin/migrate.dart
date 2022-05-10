@@ -3,6 +3,7 @@ import 'package:angel3_migration_runner/angel3_migration_runner.dart';
 import 'package:angel3_migration_runner/postgres.dart';
 import 'package:cursach_reports_backend/src/config/plugins/orm.dart';
 import 'package:cursach_reports_backend/src/models/report.dart';
+import 'package:cursach_reports_backend/src/models/user.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 
@@ -23,6 +24,7 @@ void main(List<String> args) async {
   var connection = await connectToPostgres(configuration);
   var migrationRunner = PostgresMigrationRunner(connection, migrations: [
     ReportMigration(),
+    UserMigration(),
   ]);
 
   await runMigrations(migrationRunner, args);

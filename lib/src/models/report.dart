@@ -13,4 +13,5 @@ abstract class _Report extends Model {
   String? get message;
   String? get author;
   DateTime? get date;
+  bool? get isAnonymous;
 }
