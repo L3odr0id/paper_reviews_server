@@ -47,14 +47,21 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
       var login = req.bodyAsMap['login'] as String;
       var password = req.bodyAsMap['password'] as String;
 
-      print(login + ' ' + password);
       var executor = req.container!.make<QueryExecutor>();
 
-      var query = UserQuery()
-        ..values.login = login
-        ..values.password = password.sha256Hash;
-      var optional = await query.insert(executor);
-      return {"success": optional.isPresent};
+      var query1 = UserQuery()..where!.login.equals(login);
+
+      var current = await query1.get(executor);
+
+      if (current.isEmpty) {
+        var query = UserQuery()
+          ..values.login = login
+          ..values.password = password.sha256Hash;
+        var optional = await query.insert(executor);
+        return {"success": optional.isPresent};
+      } else {
+        return {"success": false, 'reason': 'Nickname is already used'};
+      }
     });
 
     app.post('/report/', (req, res) async {
