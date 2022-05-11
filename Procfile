@@ -1,1 +1,1 @@
-web: ./dart-sdk/bin/dart bin/prod.dart
+web: flutter clean && flutter pub get && ./dart-sdk/bin/dart bin/prod.dart
