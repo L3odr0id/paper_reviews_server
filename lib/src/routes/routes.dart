@@ -1,4 +1,4 @@
-import 'package:angel3_cors/angel3_cors.dart';
+// import 'package:angel3_cors/angel3_cors.dart';
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_orm/angel3_orm.dart';
 import 'package:angel3_serialize/angel3_serialize.dart';
@@ -20,7 +20,7 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
     // Typically, you want to mount controllers first, after any global middleware.
     await app.configure(controllers.configureServer);
 
-    app.fallback(cors());
+    // app.fallback(cors());
 
     // Render `views/hello.jl` when a user visits the application root.
     // app.get('/', (req, res) => res.render('hello'));
