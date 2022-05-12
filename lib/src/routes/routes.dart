@@ -20,7 +20,22 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
     // Typically, you want to mount controllers first, after any global middleware.
     await app.configure(controllers.configureServer);
 
-    app.fallback(cors(CorsOptions()));
+    //  static const overrideHeaders = {
+    //   ACCESS_CONTROL_ALLOW_ORIGIN: '*',
+    //   'Content-Type': 'application/json;charset=utf-8',
+    //   ACCESS_CONTROL_ALLOW_METHODS: 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+    //   ACCESS_CONTROL_ALLOW_CREDENTIALS: 'true',
+    //   ACCESS_CONTROL_ALLOW_HEADERS: "*",
+    //   ACCESS_CONTROL_MAX_AGE: '86400',
+    // };
+    app.fallback(
+      cors(
+        CorsOptions(
+          credentials: true,
+          allowedHeaders: ['*'],
+        ),
+      ),
+    );
 
     // Render `views/hello.jl` when a user visits the application root.
     // app.get('/', (req, res) => res.render('hello'));
