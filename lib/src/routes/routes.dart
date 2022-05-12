@@ -33,6 +33,8 @@ AngelConfigurer configureServer(FileSystem fileSystem) {
         CorsOptions(
           credentials: true,
           allowedHeaders: ['*'],
+          preflightContinue: true,
+          successStatus: 200,
         ),
       ),
     );
